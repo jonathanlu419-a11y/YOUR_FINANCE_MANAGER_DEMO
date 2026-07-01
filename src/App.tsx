@@ -102,15 +102,23 @@ export default function App() {
           <span className="hero-eyebrow">Quick Add</span>
           <h1 className="hero-title">Add an expense at the<br /> speed of thought.</h1>
           <p className="hero-sub">
-            Most finance apps make you stop and fill out a form for every transaction.
-            Quick Add turns your most common transactions into a single tap — built on a
-            real double-entry accounting engine underneath, so speed never costs accuracy.
+            This app doesn’t ask for your bank login or sync anything through a third
+            party. Every transaction is typed by you, on your own ledger — nothing ever
+            leaves your database. Quick Add exists so that keeping your data private
+            doesn’t mean giving up speed.
           </p>
         </Reveal>
       </section>
 
       {/* ── Feature highlights ───────────────────────────────────────────── */}
       <section className="features">
+        <Reveal>
+          <p className="features-intro">
+            Most finance apps make you stop and fill out a form for every transaction.
+            Quick Add turns your most common transactions into a single tap — built on a
+            real double-entry accounting engine underneath, so speed never costs accuracy.
+          </p>
+        </Reveal>
         <div className="features-grid">
           <Reveal delay={0}>
             <Feature
@@ -123,7 +131,7 @@ export default function App() {
             <Feature
               icon={<Scale size={22} aria-hidden="true" />}
               title="Real accounting underneath"
-              body="Every quick add still posts a fully balanced double-entry journal entry. Not a toy tracker with a shortcut bolted on."
+              body="Every quick add still posts a fully balanced journal entry — not a toy tracker with a shortcut bolted on."
             />
           </Reveal>
           <Reveal delay={180}>

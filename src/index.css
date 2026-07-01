@@ -205,6 +205,10 @@ select.form-control option { background: #1c2336; color: var(--text); }
 
 /* Feature highlights */
 .features { padding: 40px 0 24px; }
+.features-intro {
+  text-align: center; max-width: 680px; margin: 0 auto 36px;
+  font-size: 17px; line-height: 1.6; color: var(--text-2);
+}
 .features-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .feature {
   background: var(--card-bg); border: 1px solid var(--border);
