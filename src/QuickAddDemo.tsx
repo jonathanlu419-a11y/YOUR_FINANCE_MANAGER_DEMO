@@ -3,19 +3,22 @@
  * app's "Quick Add" shortcut wizard. Local state + mock data only; "Confirm"
  * appends to an in-memory list via the onAdd prop. No network, no persistence.
  *
- * Flow (mirrors the real component):
+ * Quick shortcuts (type 'quick') run the wizard:
  *   choice  → shortcut grid
  *   payee   → payee chips / free text / skip   (skipped for transfers)
  *   amount  → funding-account chips + large amount input + date pill
  *   preview → tappable summary card + inline description/category → Confirm
  *   success → confirmation, then "Add another" / "Done"
+ * The "Full journal entry" shortcut (type 'full') instead opens the full
+ * single-page form (the `regular` step) — same fallback behavior as the real app.
  */
 import { useState, type CSSProperties } from 'react';
 import { NotebookPen, Check } from 'lucide-react';
 import Modal from './Modal';
 import {
-  SHORTCUTS, CATEGORIES, PAYEES, acctShort, legAccount, todayISO, formatCurrency,
-  type Shortcut,
+  SHORTCUTS, ACCOUNTS, CATEGORIES, PAYEES,
+  acctShort, legAccount, accountById, todayISO, formatCurrency,
+  type Shortcut, type Leg,
 } from './mockData';
 
 export interface MockTx {
@@ -29,7 +32,7 @@ export interface MockTx {
   category: string | null;
 }
 
-type Step = 'choice' | 'payee' | 'amount' | 'preview' | 'success';
+type Step = 'choice' | 'payee' | 'amount' | 'preview' | 'regular' | 'success';
 
 interface Form {
   date: string;
@@ -65,8 +68,12 @@ export default function QuickAddDemo({ onAdd }: { onAdd: (tx: MockTx) => void })
   const amtNum = parseFloat(form.amount);
   const amtValid = !isNaN(amtNum) && amtNum > 0;
 
-  const drAcct = sc ? legAccount(sc.debit, form.debitId) : null;
-  const crAcct = sc ? legAccount(sc.credit, form.creditId) : null;
+  const hasPayee = sc?.type === 'quick' && sc.hasPayee;
+
+  // Resolved accounts: quick shortcuts use their leg rules; the full form uses the
+  // free-choice selects (accountById on the picked ids).
+  const drAcct = !sc ? null : sc.type === 'quick' ? legAccount(sc.debit, form.debitId) : accountById(form.debitId);
+  const crAcct = !sc ? null : sc.type === 'quick' ? legAccount(sc.credit, form.creditId) : accountById(form.creditId);
 
   function openFab() {
     setForm(emptyForm()); setErrors({}); setPayeeOther(false); setDatePickerOpen(false);
@@ -78,19 +85,26 @@ export default function QuickAddDemo({ onAdd }: { onAdd: (tx: MockTx) => void })
   }
 
   function chooseShortcut(shortcut: Shortcut) {
+    setSc(shortcut);
+    setPayeeOther(false);
+    setErrors({});
+    if (shortcut.type === 'full') {
+      setForm(emptyForm());
+      setStep('regular');
+      return;
+    }
     const f = emptyForm();
     if (shortcut.debit.kind === 'chips') f.debitId = shortcut.debit.accounts[0]?.id ?? null;
     if (shortcut.credit.kind === 'chips') f.creditId = shortcut.credit.accounts[0]?.id ?? null;
     setForm(f);
-    setSc(shortcut);
-    setPayeeOther(false);
-    setErrors({});
     setStep(shortcut.hasPayee ? 'payee' : 'amount');
   }
 
   function handleConfirm() {
-    if (!sc || !drAcct || !crAcct) return;
+    if (!sc) return;
     const errs: Record<string, string> = {};
+    if (!drAcct) errs.debit = 'Select a debit account';
+    if (!crAcct) errs.credit = 'Select a credit account';
     if (!amtValid) errs.amount = 'Enter a valid amount greater than 0';
     if (!form.description.trim()) errs.description = 'Description is required';
     if (Object.keys(errs).length) { setErrors(errs); return; }
@@ -99,7 +113,8 @@ export default function QuickAddDemo({ onAdd }: { onAdd: (tx: MockTx) => void })
       id: nextTxId++,
       date: form.date,
       description: form.description.trim(),
-      payee: sc.hasPayee ? (form.payee.trim() || null) : null,
+      // Transfers (quick + !hasPayee) have no payee; everything else may have one.
+      payee: (sc.type === 'quick' && !sc.hasPayee) ? null : (form.payee.trim() || null),
       amount: amtNum,
       drName: acctShort(drAcct),
       crName: acctShort(crAcct),
@@ -108,12 +123,12 @@ export default function QuickAddDemo({ onAdd }: { onAdd: (tx: MockTx) => void })
     setStep('success');
   }
 
-  // ── Chip legs shown on the amount page (a leg with kind 'chips') ────────────
-  const chipLegs = sc
+  // Chip legs shown on the amount page (a leg with kind 'chips').
+  const chipLegs = sc && sc.type === 'quick'
     ? ([
         sc.debit.kind === 'chips' ? { side: 'debit' as const, leg: sc.debit } : null,
         sc.credit.kind === 'chips' ? { side: 'credit' as const, leg: sc.credit } : null,
-      ].filter(Boolean) as { side: 'debit' | 'credit'; leg: Extract<Shortcut['debit'], { kind: 'chips' }> }[])
+      ].filter(Boolean) as { side: 'debit' | 'credit'; leg: Extract<Leg, { kind: 'chips' }> }[])
     : [];
 
   const title = sc ? `${sc.icon} ${sc.name}` : 'Quick Add';
@@ -185,7 +200,7 @@ export default function QuickAddDemo({ onAdd }: { onAdd: (tx: MockTx) => void })
 
       {/* ── Page 3: amount ─────────────────────────────────────────────────── */}
       <Modal open={open && step === 'amount'} onClose={closeAll} title={title}>
-        <button style={backBtnStyle} onClick={() => setStep(sc?.hasPayee ? 'payee' : 'choice')}>← Back</button>
+        <button style={backBtnStyle} onClick={() => setStep(hasPayee ? 'payee' : 'choice')}>← Back</button>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {chipLegs.map(({ side, leg }) => (
@@ -238,7 +253,7 @@ export default function QuickAddDemo({ onAdd }: { onAdd: (tx: MockTx) => void })
         </div>
       </Modal>
 
-      {/* ── Page 4: preview ────────────────────────────────────────────────── */}
+      {/* ── Page 4: preview (quick shortcuts) ──────────────────────────────── */}
       <Modal open={open && step === 'preview'} onClose={closeAll} title={title}>
         <button style={backBtnStyle} onClick={() => setStep('amount')}>← Back</button>
         <div className="qaf-preview-card">
@@ -267,7 +282,7 @@ export default function QuickAddDemo({ onAdd }: { onAdd: (tx: MockTx) => void })
             <span className="qaf-preview-caret">›</span>
           </button>
 
-          {sc?.hasPayee && (
+          {hasPayee && (
             <button type="button" className="qaf-preview-row" onClick={() => setStep('payee')}>
               <span className="qaf-preview-label">Payee</span>
               <span className="qaf-preview-value">
@@ -304,7 +319,77 @@ export default function QuickAddDemo({ onAdd }: { onAdd: (tx: MockTx) => void })
         </div>
       </Modal>
 
-      {/* ── Page 5: success ────────────────────────────────────────────────── */}
+      {/* ── Full journal entry — single-page form (fallback option) ────────── */}
+      <Modal open={open && step === 'regular'} onClose={closeAll} title={title}>
+        <button style={backBtnStyle} onClick={() => setStep('choice')}>← Back</button>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="form-group">
+            <label className="form-label">Date</label>
+            <input type="date" className="form-control" value={form.date}
+              onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Debit account *</label>
+            <select className="form-control" value={form.debitId ?? ''}
+              onChange={e => { setErrors(er => ({ ...er, debit: '' })); setForm(f => ({ ...f, debitId: e.target.value ? Number(e.target.value) : null })); }}>
+              <option value="">— Select account —</option>
+              {ACCOUNTS.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+            {errors.debit && <span className="form-error">{errors.debit}</span>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Credit account *</label>
+            <select className="form-control" value={form.creditId ?? ''}
+              onChange={e => { setErrors(er => ({ ...er, credit: '' })); setForm(f => ({ ...f, creditId: e.target.value ? Number(e.target.value) : null })); }}>
+              <option value="">— Select account —</option>
+              {ACCOUNTS.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+            </select>
+            {errors.credit && <span className="form-error">{errors.credit}</span>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Amount (CAD) *</label>
+            <input type="number" inputMode="decimal" className="form-control"
+              min="0.01" step="0.01" placeholder="0.00" value={form.amount}
+              onChange={e => { setErrors(er => ({ ...er, amount: '' })); setForm(f => ({ ...f, amount: e.target.value })); }} />
+            {errors.amount && <span className="form-error">{errors.amount}</span>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Description *</label>
+            <input type="text" className="form-control" placeholder="What was this for?" value={form.description}
+              onChange={e => { setErrors(er => ({ ...er, description: '' })); setForm(f => ({ ...f, description: e.target.value })); }} />
+            {errors.description && <span className="form-error">{errors.description}</span>}
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Payee</label>
+            <input type="text" className="form-control" placeholder="(optional)" value={form.payee}
+              onChange={e => setForm(f => ({ ...f, payee: e.target.value }))} />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Category</label>
+            <select className="form-control" value={form.category}
+              onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
+              <option value="">— None —</option>
+              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+          <button className="btn btn-secondary" onClick={closeAll}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleConfirm}
+            disabled={!drAcct || !crAcct || !amtValid || !form.description.trim()}>
+            Save entry
+          </button>
+        </div>
+      </Modal>
+
+      {/* ── Success ────────────────────────────────────────────────────────── */}
       <Modal open={open && step === 'success'} onClose={closeAll} title={title}>
         <div style={{ textAlign: 'center', padding: '12px 0 4px' }}>
           <div style={{
