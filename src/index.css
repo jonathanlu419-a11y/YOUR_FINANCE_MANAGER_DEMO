@@ -217,6 +217,9 @@ select.form-control option { background: #1c2336; color: var(--text); }
 @media (max-width: 520px) {
   .site-header-inner { gap: 14px; padding: 0 16px; }
   .site-nav { gap: 18px; }
+  /* "DoubleEntry" is longer than the old mark — tighten slightly so it doesn't
+     crowd the nav on narrow phones (nav still has its horizontal-scroll fallback). */
+  .site-wordmark { font-size: 14px; letter-spacing: 0.02em; }
 }
 
 /* ─── Showcase page ──────────────────────────────────────── */

@@ -1,4 +1,4 @@
-# Quick Add — Finance Manager Demo
+# DoubleEntry — Quick Add Demo
 
 An **isolated, standalone UI/UX demo** of the "Quick Add" fast-entry shortcut flow
 from my personal **finance-portfolio-manager** app. It exists purely to showcase

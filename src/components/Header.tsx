@@ -14,9 +14,9 @@ export default function Header() {
   return (
     <header className="site-header">
       <div className="site-header-inner">
-        <NavLink to="/quick-add" className="site-wordmark" aria-label="Finance and Portfolio Manager — home">
+        <NavLink to="/quick-add" className="site-wordmark" aria-label="DoubleEntry — home">
           <span className="site-wordmark-glyph" aria-hidden="true" />
-          <span className="site-wordmark-text">FPM</span>
+          <span className="site-wordmark-text">DoubleEntry</span>
         </NavLink>
 
         <nav className="site-nav" aria-label="Primary">
