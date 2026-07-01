@@ -177,6 +177,48 @@ select.form-control option { background: #1c2336; color: var(--text); }
 .qaf-preview-caret { color: var(--text-3); font-size: 16px; flex-shrink: 0; }
 
 /* ─── Demo page shell (not from the main app) ────────────── */
+/* ─── Global site header (Apple-style bar) ───────────────── */
+.site-header {
+  position: sticky; top: 0; z-index: 1500;
+  background: rgba(13, 17, 23, 0.82);
+  backdrop-filter: saturate(150%) blur(12px);
+  -webkit-backdrop-filter: saturate(150%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+.site-header-inner {
+  max-width: 960px; margin: 0 auto; padding: 0 24px;
+  height: 52px; display: flex; align-items: center; gap: 24px;
+}
+.site-wordmark {
+  display: inline-flex; align-items: center; gap: 9px; flex-shrink: 0;
+  color: var(--text); text-decoration: none;
+  font-size: 15px; font-weight: 600; letter-spacing: 0.06em;
+}
+.site-wordmark-glyph {
+  width: 15px; height: 15px; border-radius: 4px; flex-shrink: 0;
+  background: var(--primary); transform: rotate(45deg);
+  box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, 0.25);
+}
+.site-wordmark-text { line-height: 1; }
+.site-nav {
+  margin-left: auto; display: flex; align-items: stretch; gap: 26px; height: 100%;
+  overflow-x: auto; scrollbar-width: none;
+}
+.site-nav::-webkit-scrollbar { display: none; }
+.site-nav-link {
+  display: inline-flex; align-items: center; height: 100%; white-space: nowrap;
+  color: var(--text-2); text-decoration: none;
+  font-size: 13px; letter-spacing: 0.03em;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+.site-nav-link:hover { color: var(--text); }
+.site-nav-link.active { color: var(--text); border-bottom-color: var(--primary); }
+@media (max-width: 520px) {
+  .site-header-inner { gap: 14px; padding: 0 16px; }
+  .site-nav { gap: 18px; }
+}
+
 /* ─── Showcase page ──────────────────────────────────────── */
 .showcase { max-width: 960px; margin: 0 auto; padding: 0 24px 40px; }
 
