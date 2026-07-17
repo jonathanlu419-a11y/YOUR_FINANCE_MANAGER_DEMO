@@ -31,7 +31,6 @@ interface SavedEntry {
   payee: string;
   notes: string;
   lines: { account: string; side: Side; amount: number }[];
-  total: number;
 }
 
 const cents = (n: number) => Math.round(n * 100);
@@ -95,7 +94,6 @@ export default function InlineJournalEntry() {
         side: l.side,
         amount: parseAmt(l.amount),
       })),
-      total: totalDebits,
     });
   }
 
@@ -105,6 +103,16 @@ export default function InlineJournalEntry() {
     setLines(seedLines());
     setSaved(null);
   }
+
+  // Collapse the saved entry's lines into the Journal-Entries-list shape: one debit
+  // column + one credit column. Multi-line entries (rare in this demo) comma-join the
+  // account names and sum each side — the entry is always balanced, so the two sums agree.
+  const savedDebitLines = saved ? saved.lines.filter(l => l.side === 'debit') : [];
+  const savedCreditLines = saved ? saved.lines.filter(l => l.side === 'credit') : [];
+  const savedDebitAccounts = savedDebitLines.map(l => l.account).join(', ');
+  const savedCreditAccounts = savedCreditLines.map(l => l.account).join(', ');
+  const savedDebitAmt = savedDebitLines.reduce((s, l) => s + l.amount, 0);
+  const savedCreditAmt = savedCreditLines.reduce((s, l) => s + l.amount, 0);
 
   return (
     <div className="ije">
@@ -227,45 +235,42 @@ export default function InlineJournalEntry() {
         </div>
       </div>
 
-      {/* ── Saved-entry card (mirrors the worked-example ledger styling) ───── */}
+      {/* ── Saved entry — rendered as a Journal-Entries-list table row ─────── */}
       {saved && (
-        <div className="je-card ije-saved" role="status" aria-live="polite">
-          <div className="je-card-head">
-            <span className="je-card-eyebrow">Saved entry</span>
-            <p className="je-card-txn">{saved.description}</p>
-            <p className="ije-saved-meta">
-              {saved.date}
-              {saved.category ? ` · ${saved.category}` : ''}
-              {saved.payee ? ` · ${saved.payee}` : ''}
-              {saved.notes ? ` · ${saved.notes}` : ''}
-            </p>
+        <div className="ije-saved" role="status" aria-live="polite">
+          <span className="ije-saved-label">Saved entry</span>
+
+          <div className="je-list-scroll">
+            <table className="je-list">
+              <thead>
+                <tr>
+                  <th scope="col">Date</th>
+                  <th scope="col">Description</th>
+                  <th scope="col">Category</th>
+                  <th scope="col">Payee</th>
+                  <th scope="col">Debit Account</th>
+                  <th scope="col" className="je-list-amt">Debit Amt</th>
+                  <th scope="col">Credit Account</th>
+                  <th scope="col" className="je-list-amt">Credit Amt</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{saved.date}</td>
+                  <td className="je-list-desc">{saved.description}</td>
+                  <td>{saved.category || <span className="je-list-muted">—</span>}</td>
+                  <td>{saved.payee || <span className="je-list-muted">—</span>}</td>
+                  <td>{savedDebitAccounts}</td>
+                  <td className="je-list-amt je-list-amt--debit">{formatCurrency(savedDebitAmt)}</td>
+                  <td>{savedCreditAccounts}</td>
+                  <td className="je-list-amt je-list-amt--credit">{formatCurrency(savedCreditAmt)}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <table className="je-table">
-            <thead>
-              <tr>
-                <th scope="col">Account</th>
-                <th scope="col" className="je-amt">Debit</th>
-                <th scope="col" className="je-amt">Credit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {saved.lines.map((l, i) => (
-                <tr key={i}>
-                  <td><span className="je-acct">{l.account}</span></td>
-                  <td className={`je-amt${l.side === 'debit' ? '' : ' je-amt--empty'}`}>
-                    {l.side === 'debit' ? formatCurrency(l.amount) : '—'}
-                  </td>
-                  <td className={`je-amt${l.side === 'credit' ? '' : ' je-amt--empty'}`}>
-                    {l.side === 'credit' ? formatCurrency(l.amount) : '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-
-          <div className="je-foot">
-            <span>Debits {formatCurrency(saved.total)} &nbsp;=&nbsp; Credits {formatCurrency(saved.total)}</span>
+          <div className="je-foot ije-saved-foot">
+            <span>Debits {formatCurrency(savedDebitAmt)} &nbsp;=&nbsp; Credits {formatCurrency(savedCreditAmt)}</span>
             <span className="je-foot-ok">✓ Balanced</span>
           </div>
         </div>

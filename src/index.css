@@ -645,9 +645,37 @@ select.form-control option { background: #1c2336; color: var(--text); }
 
 .ije-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 
-/* Saved-entry card — reuses .je-card / .je-table, just re-widened + spaced. */
-.ije-saved { max-width: none; margin: 20px 0 0; }
-.ije-saved-meta { font-size: 12px; color: var(--text-3); margin: 6px 0 0; }
+/* Saved entry — read-only Journal-Entries-list table row (no action controls). */
+.ije-saved { margin: 22px 0 0; }
+.ije-saved-label {
+  display: block; margin: 0 0 10px;
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--text-3);
+}
+.je-list-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--card-bg);
+}
+.je-list { width: 100%; border-collapse: collapse; min-width: 720px; }
+.je-list th, .je-list td {
+  padding: 12px 14px; text-align: left; white-space: nowrap; font-size: 13px;
+}
+.je-list thead th {
+  font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  color: var(--text-3); background: var(--surface-2); border-bottom: 1px solid var(--border);
+}
+.je-list tbody td { color: var(--text-2); }
+.je-list-desc { color: var(--text); font-weight: 700; }
+.je-list-muted { color: var(--text-3); }
+.je-list th.je-list-amt, .je-list td.je-list-amt { text-align: right; }
+.je-list-amt { font-family: 'JetBrains Mono', ui-monospace, monospace; font-weight: 700; }
+.je-list tbody td.je-list-amt--debit { color: var(--success); }
+.je-list tbody td.je-list-amt--credit { color: var(--danger); }
+/* Detached balance bar under the list (.je-foot is otherwise attached to a card). */
+.ije-saved-foot {
+  margin-top: 10px; border: 1px solid var(--border); border-radius: var(--radius);
+}
 
 .ije-sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
