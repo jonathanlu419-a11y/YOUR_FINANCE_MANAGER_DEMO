@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Zap, Sparkles, FileSpreadsheet, ArrowRight, type LucideIcon } from 'lucide-react';
 import Reveal from '../components/Reveal';
+import InlineJournalEntry from '../components/InlineJournalEntry';
 
 /**
  * Explainer page ("/how-it-works"). Where HomePage sells the *payoff* of
@@ -138,18 +139,27 @@ export default function HowItWorksPage() {
         </Reveal>
       </section>
 
-      {/* ── Closing CTA → live demo ──────────────────────────────────────── */}
+      {/* ── Try it inline: embedded journal-entry form ───────────────────── */}
       <section className="home-section">
         <Reveal>
           <h2 className="home-h2">See a balanced entry appear</h2>
           <p className="home-section-sub">
-            Add a transaction in the Quick Add demo and watch the two-sided entry post itself.
+            Edit the entry below — the moment your debits equal your credits, it balances and
+            you can save it. Nothing is saved or sent anywhere; it’s a local simulation on mock data.
           </p>
-          <div className="hiw-cta">
-            <Link className="btn btn-primary btn-lg" to="/quick-add">
-              Try Quick Add <ArrowRight size={16} aria-hidden="true" />
+        </Reveal>
+
+        <Reveal delay={90}>
+          <InlineJournalEntry />
+        </Reveal>
+
+        <Reveal delay={120}>
+          <p className="hiw-secondary-cta">
+            Prefer the one-tap flow?{' '}
+            <Link to="/quick-add">
+              Open the full Quick Add demo <ArrowRight size={14} aria-hidden="true" />
             </Link>
-          </div>
+          </p>
         </Reveal>
       </section>
     </>
