@@ -7,6 +7,7 @@ import { NavLink } from 'react-router-dom';
  */
 const NAV: { to: string; label: string; end?: boolean }[] = [
   { to: '/', label: 'Home', end: true },
+  { to: '/how-it-works', label: 'How It Works' },
   { to: '/quick-add', label: 'Quick Add' },
   { to: '/csv-import', label: 'CSV Import' },
 ];

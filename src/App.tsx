@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import HomePage from './pages/HomePage';
+import HowItWorksPage from './pages/HowItWorksPage';
 import QuickAddPage from './pages/QuickAddPage';
 import CsvImportPage from './pages/CsvImportPage';
 
@@ -15,6 +16,7 @@ export default function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<HomePage />} />
+        <Route path="/how-it-works" element={<HowItWorksPage />} />
         <Route path="/quick-add" element={<QuickAddPage />} />
         <Route path="/csv-import" element={<CsvImportPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />

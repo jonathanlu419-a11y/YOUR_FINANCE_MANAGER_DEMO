@@ -139,6 +139,14 @@ export default function HomePage() {
             businesses use. You never have to think about it — you just get the safety net.
           </p>
         </Reveal>
+
+        <Reveal delay={150}>
+          <p className="home-hiw-link">
+            <Link to="/how-it-works">
+              See exactly how a journal entry works <ArrowRight size={14} aria-hidden="true" />
+            </Link>
+          </p>
+        </Reveal>
       </section>
 
       {/* ── Bridge to the feature showcases ──────────────────────────────── */}
